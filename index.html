@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>电动车充电桩</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 10px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 15px;
+        }
+        
+        .header h1 {
+            font-size: 22px;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .balance-panel {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .balance-text {
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .balance-amount {
+            font-weight: 700;
+            font-size: 16px;
+            color: #FF9800;
+        }
+        
+        .refresh-btn {
+            background: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .control-panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+            margin-bottom: 15px;
+        }
+        
+        .sockets-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .socket-btn {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 12px 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            min-height: 60px;
+            justify-content: center;
+        }
+        
+        .socket-btn:active {
+            transform: translateY(0);
+        }
+        
+        .socket-btn.active {
+            border-color: #4CAF50;
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        .socket-btn.disabled {
+            border-color: #9e9e9e;
+            background-color: #9e9e9e;
+            color: white;
+            cursor: not-allowed;
+        }
+        
+        .btn-icon {
+            font-size: 18px;
+        }
+        
+        .status {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            margin-top: 10px;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500;
+            font-size: 13px;
+        }
+        
+        .success {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        .error {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+        
+        .config-panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+            margin-top: 15px;
+        }
+        
+        .config-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .config-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        .toggle-config {
+            background: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .config-content {
+            display: none;
+        }
+        
+        .config-group {
+            margin-bottom: 12px;
+        }
+        
+        .config-label {
+            display: block;
+            margin-bottom: 4px;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        
+        .config-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 13px;
+        }
+        
+        .save-config {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+            margin-top: 8px;
+            font-size: 14px;
+        }
+        
+        .socket-config-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-bottom: 12px;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 8px;
+        }
+        
+        .socket-tab {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 6px 10px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .socket-tab.active {
+            background: #2196F3;
+            color: white;
+            border-color: #2196F3;
+        }
+        
+        .socket-config {
+            display: none;
+        }
+        
+        .socket-config.active {
+            display: block;
+        }
+        
+        .param-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        
+        .param-group {
+            margin-bottom: 8px;
+        }
+        
+        .param-label {
+            display: block;
+            margin-bottom: 2px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .param-input {
+            width: 100%;
+            padding: 6px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .socket-name-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+        
+        .timestamp-help {
+            font-size: 10px;
+            color: #666;
+            margin-top: 2px;
+        }
+        
+        .import-export-buttons {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        
+        .import-export-btn {
+            background: #FF9800;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-weight: 600;
+            flex: 1;
+            font-size: 12px;
+        }
+        
+        .import-export-btn.export {
+            background: #2196F3;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        /* 确认对话框样式 */
+        .confirm-dialog {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .confirm-content {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            width: 80%;
+            max-width: 300px;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .confirm-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .confirm-message {
+            font-size: 14px;
+            margin-bottom: 20px;
+            color: #666;
+        }
+        
+        .confirm-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .confirm-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .confirm-cancel {
+            background: #f5f5f5;
+            color: #333;
+        }
+        
+        .confirm-ok {
+            background: #4CAF50;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>电动车充电桩</h1>
+            <p>点击按钮开启插座</p>
+        </div>
+        
+        <!-- 将余额面板移动到标题下方 -->
+        <div class="balance-panel">
+            <div class="balance-text">余额：<span id="balanceAmount">加载中...</span></div>
+            <button class="refresh-btn" onclick="getBalance()">刷新</button>
+        </div>
+        
+        <div class="control-panel">
+            <div class="sockets-grid" id="socketsGrid">
+                <!-- 插座按钮将通过JavaScript动态生成 -->
+            </div>
+            
+            <div class="status" id="status">
+                就绪 - 点击按钮开启插座
+            </div>
+        </div>
+        
+        <div class="config-panel">
+            <div class="config-header">
+                <div class="config-title">参数配置</div>
+                <button class="toggle-config" onclick="toggleConfig()">显示配置</button>
+            </div>
+            
+            <div class="config-content" id="configContent">
+                <div class="config-group">
+                    <label class="config-label">API URL</label>
+                    <input type="text" class="config-input" id="apiUrl" value="https://mapi.xiaotucc.com/we/order/call">
+                </div>
+                
+                <div class="socket-config-tabs" id="socketTabs">
+                    <!-- 插座配置标签将通过JavaScript动态生成 -->
+                </div>
+                
+                <div id="socketConfigs">
+                    <!-- 插座配置内容将通过JavaScript动态生成 -->
+                </div>
+                
+                <button class="save-config" onclick="saveConfig()">保存所有配置</button>
+                
+                <div class="import-export-buttons">
+                    <button class="import-export-btn export" onclick="exportConfig()">导出配置</button>
+                    <button class="import-export-btn" onclick="document.getElementById('importFile').click()">导入配置</button>
+                    <input type="file" id="importFile" class="file-input" accept=".json" onchange="importConfig(event)">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 确认对话框 -->
+    <div class="confirm-dialog" id="confirmDialog">
+        <div class="confirm-content">
+            <div class="confirm-title" id="confirmTitle">确认操作</div>
+            <div class="confirm-message" id="confirmMessage">确定要执行此操作吗？</div>
+            <div class="confirm-buttons">
+                <button class="confirm-btn confirm-cancel" onclick="hideConfirmDialog()">取消</button>
+                <button class="confirm-btn confirm-ok" onclick="confirmAction()">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 插座配置数据
+        let socketsConfig = {
+            url: 'https://mapi.xiaotucc.com/we/order/call',
+            headers: {
+                'Host': 'mapi.xiaotucc.com',
+                'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 16_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/8.0.50(0x18003235) NetType/WIFI Language/zh_CN'
+            },
+            sockets: []
+        };
+
+        // 当前要操作的插座ID
+        let pendingSocketId = null;
+
+        // 余额API配置
+        const balanceConfig = {
+            url: 'https://mapi.xiaotucc.com/we/wallet/index/balance',
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/8.0.64(0x18004034) NetType/WIFI Language/zh_CN',
+                'Accept-Encoding': 'gzip,compress,br,deflate',
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Referer': 'https://servicewechat.com/wxa3dde54e66082a1b/415/page-frame.html'
+            },
+            params: {
+                uid: '840143',
+                timestamp: '1764513406',
+                token: '130C0B0B04045EA62F0E6CC628A4532B4DAB387E'
+            }
+        };
+
+        // 初始化10个插座
+        function initializeSockets() {
+            for (let i = 1; i <= 10; i++) {
+                socketsConfig.sockets.push({
+                    id: i,
+                    name: `插座${i}`,
+                    enabled: true,
+                    params: {
+                        discountId: '0',
+                        uid: '840143',
+                        dno: `190733150${i}`, // 为每个插座设置不同的dno
+                        port: '2',
+                        time: '0',
+                        wechatAppId: 'omtce0R63EDpdp6EBDH8AxmBIkhk',
+                        from: '1',
+                        cardNum: '',
+                        monthCardNum: '',
+                        insurance: '0.00',
+                        sure: '', // 新增的sure参数
+                        timestamp: '1722697945', // 固定时间戳
+                        token: '399E5F6E19093509CD29BF754409BDD0F7BC4C70'
+                    }
+                });
+            }
+        }
+
+        // 从本地存储加载配置
+        function loadConfigFromStorage() {
+            const savedConfig = localStorage.getItem('socketsConfig');
+            if (savedConfig) {
+                try {
+                    const parsedConfig = JSON.parse(savedConfig);
+                    socketsConfig.url = parsedConfig.url || socketsConfig.url;
+                    socketsConfig.headers = parsedConfig.headers || socketsConfig.headers;
+                    socketsConfig.sockets = parsedConfig.sockets || socketsConfig.sockets;
+                } catch (e) {
+                    console.error('加载配置失败:', e);
+                }
+            }
+        }
+
+        // 保存配置到本地存储
+        function saveConfigToStorage() {
+            try {
+                localStorage.setItem('socketsConfig', JSON.stringify(socketsConfig));
+            } catch (e) {
+                console.error('保存配置失败:', e);
+            }
+        }
+
+        // 获取余额
+        async function getBalance() {
+            const balanceAmountEl = document.getElementById('balanceAmount');
+            
+            try {
+                balanceAmountEl.textContent = '查询中...';
+                
+                // 准备表单数据
+                const formData = new URLSearchParams();
+                for (const key in balanceConfig.params) {
+                    formData.append(key, balanceConfig.params[key]);
+                }
+                
+                // 发送请求
+                const response = await fetch(balanceConfig.url, {
+                    method: 'POST',
+                    headers: balanceConfig.headers,
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    console.log('完整响应数据:', result); // 调试用
+                    
+                    // 检查money字段在data对象中
+                    if (result.data && result.data.money !== undefined) {
+                        balanceAmountEl.textContent = `${result.data.money}`;
+                    } else {
+                        balanceAmountEl.textContent = '未知';
+                        console.error('API返回数据中没有money字段:', result);
+                    }
+                } else {
+                    throw new Error(`API返回错误: ${response.status} ${response.statusText}`);
+                }
+                
+            } catch (error) {
+                console.error('获取余额失败:', error);
+                balanceAmountEl.textContent = '获取失败';
+                
+                const statusEl = document.getElementById('status');
+                statusEl.textContent = `获取余额失败: ${error.message}`;
+                statusEl.className = 'status error';
+                
+                setTimeout(() => {
+                    statusEl.textContent = '就绪 - 点击按钮开启插座';
+                    statusEl.className = 'status';
+                }, 5000);
+            }
+        }
+
+        // 显示确认对话框
+        function showConfirmDialog(socketId) {
+            const socket = socketsConfig.sockets.find(s => s.id === socketId);
+            if (!socket) return;
+            
+            pendingSocketId = socketId;
+            
+            const dialog = document.getElementById('confirmDialog');
+            const title = document.getElementById('confirmTitle');
+            const message = document.getElementById('confirmMessage');
+            
+            title.textContent = `确认开启插座`;
+            message.textContent = `确定要开启 ${socket.name} 吗？`;
+            
+            dialog.style.display = 'flex';
+        }
+
+        // 隐藏确认对话框
+        function hideConfirmDialog() {
+            const dialog = document.getElementById('confirmDialog');
+            dialog.style.display = 'none';
+            pendingSocketId = null;
+        }
+
+        // 确认操作
+        function confirmAction() {
+            const socketIdToToggle = pendingSocketId;
+            hideConfirmDialog();
+            
+            if (socketIdToToggle) {
+                toggleSocket(socketIdToToggle);
+            }
+        }
+
+        // 导出配置
+        function exportConfig() {
+            try {
+                const configStr = JSON.stringify(socketsConfig, null, 2);
+                const blob = new Blob([configStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = '插座配置.json';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                const statusEl = document.getElementById('status');
+                statusEl.textContent = '配置导出成功!';
+                statusEl.className = 'status success';
+                
+                setTimeout(() => {
+                    statusEl.textContent = '就绪 - 点击按钮开启插座';
+                    statusEl.className = 'status';
+                }, 3000);
+            } catch (e) {
+                console.error('导出配置失败:', e);
+                const statusEl = document.getElementById('status');
+                statusEl.textContent = '导出配置失败: ' + e.message;
+                statusEl.className = 'status error';
+                
+                setTimeout(() => {
+                    statusEl.textContent = '就绪 - 点击按钮开启插座';
+                    statusEl.className = 'status';
+                }, 5000);
+            }
+        }
+
+        // 导入配置
+        function importConfig(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedConfig = JSON.parse(e.target.result);
+                    
+                    // 验证导入的配置结构
+                    if (importedConfig && importedConfig.sockets && Array.isArray(importedConfig.sockets)) {
+                        socketsConfig = importedConfig;
+                        saveConfigToStorage();
+                        
+                        // 更新界面
+                        renderSocketButtons();
+                        renderConfigPanel();
+                        
+                        const statusEl = document.getElementById('status');
+                        statusEl.textContent = '配置导入成功!';
+                        statusEl.className = 'status success';
+                        
+                        setTimeout(() => {
+                            statusEl.textContent = '就绪 - 点击按钮开启插座';
+                            statusEl.className = 'status';
+                        }, 3000);
+                    } else {
+                        throw new Error('配置文件格式不正确');
+                    }
+                } catch (e) {
+                    console.error('导入配置失败:', e);
+                    const statusEl = document.getElementById('status');
+                    statusEl.textContent = '导入配置失败: ' + e.message;
+                    statusEl.className = 'status error';
+                    
+                    setTimeout(() => {
+                        statusEl.textContent = '就绪 - 点击按钮开启插座';
+                        statusEl.className = 'status';
+                    }, 5000);
+                }
+            };
+            reader.readAsText(file);
+            
+            // 重置文件输入，允许再次选择同一文件
+            event.target.value = '';
+        }
+
+        // 渲染插座按钮
+        function renderSocketButtons() {
+            const socketsGrid = document.getElementById('socketsGrid');
+            socketsGrid.innerHTML = '';
+            
+            socketsConfig.sockets.forEach(socket => {
+                const button = document.createElement('button');
+                button.className = `socket-btn active`;
+                button.innerHTML = `
+                    <span class="btn-icon">🔌</span>
+                    <span>${socket.name}</span>
+                `;
+                button.onclick = () => {
+                    if (socket.enabled) {
+                        showConfirmDialog(socket.id);
+                    }
+                };
+                
+                socketsGrid.appendChild(button);
+            });
+        }
+
+        // 渲染配置面板
+        function renderConfigPanel() {
+            const socketTabs = document.getElementById('socketTabs');
+            const socketConfigs = document.getElementById('socketConfigs');
+            
+            socketTabs.innerHTML = '';
+            socketConfigs.innerHTML = '';
+            
+            socketsConfig.sockets.forEach((socket, index) => {
+                // 创建标签
+                const tab = document.createElement('div');
+                tab.className = `socket-tab ${index === 0 ? 'active' : ''}`;
+                tab.textContent = socket.name;
+                tab.onclick = () => switchSocketTab(index);
+                socketTabs.appendChild(tab);
+                
+                // 创建配置内容
+                const config = document.createElement('div');
+                config.className = `socket-config ${index === 0 ? 'active' : ''}`;
+                config.id = `socketConfig${index}`;
+                config.innerHTML = `
+                    <div class="config-group">
+                        <label class="config-label">插座名称</label>
+                        <input type="text" class="socket-name-input" id="socketName${index}" value="${socket.name}">
+                    </div>
+                    
+                    <div class="config-group">
+                        <label class="config-label">启用此插座</label>
+                        <input type="checkbox" id="socketEnabled${index}" ${socket.enabled ? 'checked' : ''} style="margin-left: 10px;">
+                    </div>
+                    
+                    <div class="config-group">
+                        <label class="config-label">请求参数</label>
+                        <div class="param-grid">
+                            <div class="param-group">
+                                <label class="param-label">discountId</label>
+                                <input type="text" class="param-input" id="discountId${index}" value="${socket.params.discountId}">
+                            </div>
+                            <div class="param-group">
+                                <label class="param-label">uid</label>
+                                <input type="text" class="param-input" id="uid${index}" value="${socket.params.uid}">
+                            </div>
+                            <div class="param-group">
+                                <label class="param-label">dno</label>
+                                <input type="text" class="param-input" id="dno${index}" value="${socket.params.dno}">
+                            </div>
+                            <div class="param-group">
+                                <label class="param-label">port</label>
+                                <input type="text" class="param-input" id="port${index}" value="${socket.params.port}">
+                            </div>
+                            <div class="param-group">
+                                <label class="param-label">time</label>
+                                <input type="text" class="param-input" id="time${index}" value="${socket.params.time}">
+                            </div>
+                            <div class="param-group">
+                                <label class="param-label">wechatAppId</label>
+                                <input type="text" class="param-input" id="wechatAppId${index}" value="${socket.params.wechatAppId}">
+                            </div>
+                            <div class="param-group">
+                                <label class="param-label">from</label>
+                                <input type="text" class="param-input" id="from${index}" value="${socket.params.from}">
+                            </div>
+                            <div class="param-group">
+                                <label class="param-label">cardNum</label>
+                                <input type="text" class="param-input" id="cardNum${index}" value="${socket.params.cardNum}">
+                            </div>
+                            <div class="param-group">
+                                <label class="param-label">monthCardNum</label>
+                                <input type="text" class="param-input" id="monthCardNum${index}" value="${socket.params.monthCardNum}">
+                            </div>
+                            <div class="param-group">
+                                <label class="param-label">insurance</label>
+                                <input type="text" class="param-input" id="insurance${index}" value="${socket.params.insurance}">
+                            </div>
+                            <div class="param-group">
+                                <label class="param-label">sure</label>
+                                <input type="text" class="param-input" id="sure${index}" value="${socket.params.sure}">
+                            </div>
+                            <div class="param-group">
+                                <label class="param-label">timestamp</label>
+                                <input type="text" class="param-input" id="timestamp${index}" value="${socket.params.timestamp}">
+                                <div class="timestamp-help">使用固定的时间戳，不会自动更新</div>
+                            </div>
+                            <div class="param-group">
+                                <label class="param-label">token</label>
+                                <input type="text" class="param-input" id="token${index}" value="${socket.params.token}">
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                socketConfigs.appendChild(config);
+            });
+        }
+
+        // 切换插座配置标签
+        function switchSocketTab(index) {
+            // 移除所有标签的active类
+            document.querySelectorAll('.socket-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // 移除所有配置的active类
+            document.querySelectorAll('.socket-config').forEach(config => {
+                config.classList.remove('active');
+            });
+            
+            // 添加active类到当前标签和配置
+            document.querySelectorAll('.socket-tab')[index].classList.add('active');
+            document.getElementById(`socketConfig${index}`).classList.add('active');
+        }
+
+        // 切换插座状态
+        async function toggleSocket(socketId) {
+            const socket = socketsConfig.sockets.find(s => s.id === socketId);
+            if (!socket || !socket.enabled) return;
+            
+            const statusEl = document.getElementById('status');
+            const buttons = document.querySelectorAll('.socket-btn');
+            
+            try {
+                // 显示加载状态
+                statusEl.textContent = `正在开启 ${socket.name}...`;
+                statusEl.className = 'status';
+                buttons.forEach(btn => btn.classList.add('loading'));
+                
+                // 准备表单数据
+                const formData = new URLSearchParams();
+                for (const key in socket.params) {
+                    formData.append(key, socket.params[key]);
+                }
+                
+                // 发送请求
+                const response = await fetch(socketsConfig.url, {
+                    method: 'POST',
+                    headers: socketsConfig.headers,
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    // 尝试解析响应为JSON
+                    let result;
+                    try {
+                        result = await response.json();
+                    } catch (e) {
+                        // 如果不是JSON，则获取文本
+                        result = { message: await response.text() };
+                    }
+                    
+                    // 显示API返回的message
+                    if (result.message) {
+                        statusEl.textContent = result.message;
+                    } else {
+                        statusEl.textContent = "开启成功";
+                    }
+                    
+                    statusEl.className = 'status success';
+                    
+                } else {
+                    throw new Error(`API返回错误: ${response.status} ${response.statusText}`);
+                }
+                
+            } catch (error) {
+                console.error('请求失败:', error);
+                statusEl.textContent = `请求失败: ${error.message}`;
+                statusEl.className = 'status error';
+            } finally {
+                // 移除加载状态
+                buttons.forEach(btn => btn.classList.remove('loading'));
+                
+                // 5秒后恢复状态
+                setTimeout(() => {
+                    statusEl.textContent = '就绪 - 点击按钮开启插座';
+                    statusEl.className = 'status';
+                }, 5000);
+            }
+        }
+        
+        // 切换配置面板显示/隐藏
+        function toggleConfig() {
+            const configContent = document.getElementById('configContent');
+            const toggleBtn = document.querySelector('.toggle-config');
+            
+            if (configContent.style.display === 'block') {
+                configContent.style.display = 'none';
+                toggleBtn.textContent = '显示配置';
+            } else {
+                configContent.style.display = 'block';
+                toggleBtn.textContent = '隐藏配置';
+            }
+        }
+        
+        // 保存配置
+        function saveConfig() {
+            // 保存URL
+            socketsConfig.url = document.getElementById('apiUrl').value;
+            
+            // 保存每个插座的配置
+            socketsConfig.sockets.forEach((socket, index) => {
+                socket.name = document.getElementById(`socketName${index}`).value;
+                socket.enabled = document.getElementById(`socketEnabled${index}`).checked;
+                
+                socket.params.discountId = document.getElementById(`discountId${index}`).value;
+                socket.params.uid = document.getElementById(`uid${index}`).value;
+                socket.params.dno = document.getElementById(`dno${index}`).value;
+                socket.params.port = document.getElementById(`port${index}`).value;
+                socket.params.time = document.getElementById(`time${index}`).value;
+                socket.params.wechatAppId = document.getElementById(`wechatAppId${index}`).value;
+                socket.params.from = document.getElementById(`from${index}`).value;
+                socket.params.cardNum = document.getElementById(`cardNum${index}`).value;
+                socket.params.monthCardNum = document.getElementById(`monthCardNum${index}`).value;
+                socket.params.insurance = document.getElementById(`insurance${index}`).value;
+                socket.params.sure = document.getElementById(`sure${index}`).value;
+                socket.params.timestamp = document.getElementById(`timestamp${index}`).value;
+                socket.params.token = document.getElementById(`token${index}`).value;
+            });
+            
+            // 保存到本地存储
+            saveConfigToStorage();
+            
+            // 更新界面
+            renderSocketButtons();
+            renderConfigPanel();
+            
+            // 显示成功消息
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = '配置已保存!';
+            statusEl.className = 'status success';
+            
+            setTimeout(() => {
+                statusEl.textContent = '就绪 - 点击按钮开启插座';
+                statusEl.className = 'status';
+            }, 2000);
+        }
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化插座配置
+            initializeSockets();
+            
+            // 从本地存储加载配置
+            loadConfigFromStorage();
+            
+            // 渲染界面
+            renderSocketButtons();
+            renderConfigPanel();
+            
+            // 获取余额
+            getBalance();
+        });
+    </script>
+</body>
+</html>
