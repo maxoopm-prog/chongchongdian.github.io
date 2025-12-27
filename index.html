@@ -2,8 +2,13 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>1:1 还原-外部控制版</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="地址助手">
+    
+    <title>1:1 还原-离线纯净版</title>
     <style>
         :root {
             --tb-orange: #ff5000;
@@ -16,34 +21,43 @@
         
         body {
             margin: 0;
-            background-color: #f0f2f5; /* 修改背景色以区分手机和控制台 */
+            background-color: #fff; /* 去掉之前的灰色背景 */
             font-family: -apple-system, "SF Pro Text", "PingFang SC", sans-serif;
             display: flex;
-            flex-direction: column; /* 纵向布局 */
+            flex-direction: column;
             align-items: center;
-            padding: 40px 0;
-            gap: 30px;
         }
 
-        /* --- 手机容器 (保持原样) --- */
+        /* --- 手机展示区：去除边框和阴影 --- */
         .iphone-container {
-            width: 375px;
+            width: 100%;       /* 适配移动端宽度 */
+            max-width: 375px;
             height: 812px;
             background: #fff;
             position: relative;
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
-            border-radius: 40px; /* 增加圆角更有手机感 */
-            border: 8px solid #333; /* 手机边框 */
+            border: none;      /* 去除黑色边框 */
+            box-shadow: none;  /* 去除阴影 */
+            border-radius: 0;  /* 去除圆角使画面填满 */
+        }
+
+        /* 状态栏适配刘海 */
+        .status-bar { 
+            height: calc(44px + env(safe-area-inset-top)); 
+            padding: env(safe-area-inset-top) 22px 0; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            font-size: 15px; 
+            font-weight: 600; 
         }
 
         /* 内部滚动区 */
         .scroll-content { flex: 1; overflow-y: auto; overflow-x: hidden; }
 
-        /* 状态栏、导航栏等样式保持不变... (省略部分重复CSS以节省篇幅，实际应用中保留原CSS) */
-        .status-bar { height: 44px; padding: 0 22px; display: flex; justify-content: space-between; align-items: center; font-size: 15px; font-weight: 600; }
+        /* 基础样式保持不变 */
         .status-right { display: flex; align-items: center; gap: 5px; }
         .battery { width: 25px; height: 11.5px; border: 1px solid rgba(0,0,0,0.35); border-radius: 2.5px; position: relative; padding: 1px; }
         .battery-level { width: 67%; height: 100%; background: #000; border-radius: 1px; }
@@ -63,23 +77,20 @@
         .btn-submit { background: linear-gradient(90deg, #ff8e00, #ff5000); color: white; margin: 10px 16px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 22px; font-size: 16px; font-weight: 500; }
         .product-card { padding: 16px; display: flex; gap: 12px; border-top: 8px solid var(--tb-bg); }
         .p-img { width: 75px; height: 75px; background: #eee; border-radius: 6px; }
-        .bottom-bar { height: 55px; background: #fff; border-top: 1px solid #eee; display: flex; align-items: center; justify-content: flex-end; padding: 0 12px; gap: 10px; }
+        .bottom-bar { height: 55px; background: #fff; border-top: 1px solid #eee; display: flex; align-items: center; justify-content: flex-end; padding: 0 12px; gap: 10px; padding-bottom: env(safe-area-inset-bottom); }
         .btn-ghost { border: 1px solid #ccc; padding: 6px 15px; border-radius: 18px; font-size: 13px; }
 
-        /* --- 移出后的编辑器样式 --- */
+        /* --- 编辑器样式：去除阴影和边框 --- */
         .editor-container {
-            width: 375px; /* 与手机同宽，或设为 400px */
+            width: 100%;
+            max-width: 375px;
             padding: 20px;
             background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            border: 1px solid #ddd;
+            border-top: 1px solid #eee; /* 仅保留顶部线条区分区域 */
         }
         .editor-title { font-size: 16px; font-weight: bold; color: #333; margin-bottom: 15px; border-left: 4px solid var(--tb-orange); padding-left: 10px; }
         .input-box { width: 100%; border: 1px solid #ddd; border-radius: 6px; padding: 12px; font-size: 14px; margin-bottom: 12px; outline: none; }
-        .input-box:focus { border-color: var(--tb-orange); }
-        .history-item { background: #f8f8f8; padding: 10px; border-radius: 6px; margin-bottom: 8px; font-size: 12px; color: #666; cursor: pointer; border: 1px solid transparent; }
-        .history-item:hover { border-color: #ddd; background: #f0f0f0; }
+        .history-item { background: #f8f8f8; padding: 10px; border-radius: 6px; margin-bottom: 8px; font-size: 12px; color: #666; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -109,8 +120,8 @@
         <div class="address-section">
             <div class="addr-label">商家地址</div>
             <div class="addr-content">
-                <strong id="display-main">仓库</strong>
-                <span id="display-sub">张，16688888066</span>
+                <strong id="display-main">河南省新乡市红旗区 关堤乡综合信兴物流园 22-23号邦尼电商仓库</strong>
+                <span id="display-sub">张海燕，16650388066</span>
             </div>
         </div>
         <div class="btn-submit">填写单号</div>
@@ -132,24 +143,25 @@
     <div class="editor-title">实时地址编辑 / 历史记录</div>
     <textarea id="input-main" class="input-box" rows="3" placeholder="输入新地址..."></textarea>
     <input id="input-sub" class="input-box" type="text" placeholder="收货人及电话...">
-    
-    <button onclick="saveCurrent()" style="width:100%; padding:12px; border:none; background:var(--tb-orange); color:#fff; border-radius:6px; font-weight:bold; cursor:pointer;">同步到手机预览</button>
-
-    <div style="margin-top: 20px;">
-        <div style="font-size:12px; color:#999; margin-bottom:10px;">最近使用的地址历史：</div>
-        <div id="history-list"></div>
-    </div>
+    <button onclick="saveCurrent()" style="width:100%; padding:12px; border:none; background:var(--tb-orange); color:#fff; border-radius:6px; font-weight:bold;">同步到手机预览</button>
+    <div id="history-list" style="margin-top: 20px;"></div>
 </div>
 
 <script>
-    // 时间同步
+    // 离线化核心：注册 Service Worker
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js');
+        });
+    }
+
+    // 时间与逻辑
     setInterval(() => {
         const d = new Date();
         document.getElementById('live-time').innerText = d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
     }, 1000);
 
     let history = JSON.parse(localStorage.getItem('tb_history') || '[]');
-
     function renderHistory() {
         const list = document.getElementById('history-list');
         list.innerHTML = history.map((item, i) => `
@@ -162,14 +174,11 @@
     function saveCurrent() {
         const m = document.getElementById('input-main').value;
         const s = document.getElementById('input-sub').value;
-        if(!m || !s) return alert('请填写完整地址信息');
-        
+        if(!m || !s) return alert('请填写完整');
         document.getElementById('display-main').innerText = m;
         document.getElementById('display-sub').innerText = s;
-
-        history = history.filter(h => h.main !== m);
+        history = history.filter(h => h.main !== m).slice(0, 4);
         history.unshift({main: m, sub: s});
-        if(history.length > 5) history.pop();
         localStorage.setItem('tb_history', JSON.stringify(history));
         renderHistory();
     }
@@ -178,16 +187,12 @@
         const item = history[i];
         document.getElementById('input-main').value = item.main;
         document.getElementById('input-sub').value = item.sub;
-        document.getElementById('display-main').innerText = item.main;
-        document.getElementById('display-sub').innerText = item.sub;
+        saveCurrent();
     }
 
     window.onload = () => {
-        document.getElementById('input-main').value = document.getElementById('display-main').innerText;
-        document.getElementById('input-sub').value = document.getElementById('display-sub').innerText;
         renderHistory();
     };
 </script>
-
 </body>
 </html>
