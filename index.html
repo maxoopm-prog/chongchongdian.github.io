@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>1:1 还原-外部控制版</title>
+    <style>
+        :root {
+            --tb-orange: #ff5000;
+            --tb-bg: #f7f8fa;
+            --text-main: #333333;
+            --text-sub: #999999;
+        }
+
+        * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+        
+        body {
+            margin: 0;
+            background-color: #f0f2f5; /* 修改背景色以区分手机和控制台 */
+            font-family: -apple-system, "SF Pro Text", "PingFang SC", sans-serif;
+            display: flex;
+            flex-direction: column; /* 纵向布局 */
+            align-items: center;
+            padding: 40px 0;
+            gap: 30px;
+        }
+
+        /* --- 手机容器 (保持原样) --- */
+        .iphone-container {
+            width: 375px;
+            height: 812px;
+            background: #fff;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+            border-radius: 40px; /* 增加圆角更有手机感 */
+            border: 8px solid #333; /* 手机边框 */
+        }
+
+        /* 内部滚动区 */
+        .scroll-content { flex: 1; overflow-y: auto; overflow-x: hidden; }
+
+        /* 状态栏、导航栏等样式保持不变... (省略部分重复CSS以节省篇幅，实际应用中保留原CSS) */
+        .status-bar { height: 44px; padding: 0 22px; display: flex; justify-content: space-between; align-items: center; font-size: 15px; font-weight: 600; }
+        .status-right { display: flex; align-items: center; gap: 5px; }
+        .battery { width: 25px; height: 11.5px; border: 1px solid rgba(0,0,0,0.35); border-radius: 2.5px; position: relative; padding: 1px; }
+        .battery-level { width: 67%; height: 100%; background: #000; border-radius: 1px; }
+        .nav-bar { height: 44px; display: flex; align-items: center; padding: 0 12px; }
+        .nav-breadcrumb { flex: 1; display: flex; justify-content: center; align-items: center; font-size: 13px; color: var(--text-sub); }
+        .nav-breadcrumb span.active { color: #333; font-weight: 500; margin: 0 4px; }
+        .main-title { font-size: 24px; font-weight: 600; text-align: center; margin-top: 15px; }
+        .status-text { color: #ff5500; font-size: 14px; font-weight: 500; display: block; text-align: center; }
+        .countdown { display: block; color: var(--text-sub); font-size: 12px; margin-top: 5px; text-align: center; }
+        .method-selector { display: flex; padding: 20px 16px; gap: 8px; }
+        .card { flex: 1; border: 1px solid #f0f0f0; border-radius: 8px; padding: 14px 0; text-align: center; background: #fafafa; }
+        .card.active { border: 1.5px solid var(--tb-orange); background: #fff; color: var(--tb-orange); }
+        .warning-strip { background: #fff6f1; color: #ff854a; font-size: 12px; margin: 0 16px; padding: 10px; border-radius: 6px; text-align: center; }
+        .address-section { padding: 20px 16px; display: flex; font-size: 14px; }
+        .addr-label { color: #666; width: 75px; }
+        .addr-content { flex: 1; line-height: 1.5; }
+        .btn-submit { background: linear-gradient(90deg, #ff8e00, #ff5000); color: white; margin: 10px 16px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 22px; font-size: 16px; font-weight: 500; }
+        .product-card { padding: 16px; display: flex; gap: 12px; border-top: 8px solid var(--tb-bg); }
+        .p-img { width: 75px; height: 75px; background: #eee; border-radius: 6px; }
+        .bottom-bar { height: 55px; background: #fff; border-top: 1px solid #eee; display: flex; align-items: center; justify-content: flex-end; padding: 0 12px; gap: 10px; }
+        .btn-ghost { border: 1px solid #ccc; padding: 6px 15px; border-radius: 18px; font-size: 13px; }
+
+        /* --- 移出后的编辑器样式 --- */
+        .editor-container {
+            width: 375px; /* 与手机同宽，或设为 400px */
+            padding: 20px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid #ddd;
+        }
+        .editor-title { font-size: 16px; font-weight: bold; color: #333; margin-bottom: 15px; border-left: 4px solid var(--tb-orange); padding-left: 10px; }
+        .input-box { width: 100%; border: 1px solid #ddd; border-radius: 6px; padding: 12px; font-size: 14px; margin-bottom: 12px; outline: none; }
+        .input-box:focus { border-color: var(--tb-orange); }
+        .history-item { background: #f8f8f8; padding: 10px; border-radius: 6px; margin-bottom: 8px; font-size: 12px; color: #666; cursor: pointer; border: 1px solid transparent; }
+        .history-item:hover { border-color: #ddd; background: #f0f0f0; }
+    </style>
+</head>
+<body>
+
+<div class="iphone-container">
+    <div class="status-bar">
+        <div id="live-time">10:56</div>
+        <div class="status-right"><span>5G</span><div class="battery"><div class="battery-level"></div></div></div>
+    </div>
+    <div class="nav-bar">
+        <div style="font-size: 20px; width:40px;">←</div>
+        <div class="nav-breadcrumb">商家处理 <span>&rsaquo;</span> <span class="active">2寄回商品</span> <span>&rsaquo;</span> 3退款结束</div>
+        <div style="width:40px; text-align:right;">···</div>
+    </div>
+    <div class="scroll-content">
+        <div class="main-title">请选择退货方式</div>
+        <div style="padding:10px 0;">
+            <span class="status-text">因您信誉良好，平台已同意您的退货申请</span>
+            <span class="countdown">6天23时58分后未寄出将撤销退货申请</span>
+        </div>
+        <div class="method-selector">
+            <div class="card"><div class="name">上门取件</div></div>
+            <div class="card"><div class="name">驿站自寄</div></div>
+            <div class="card active"><div class="name">自行寄回</div></div>
+        </div>
+        <div class="warning-strip">需您自行联系快递公司退回，请不要邮寄到付</div>
+        <div class="address-section">
+            <div class="addr-label">商家地址</div>
+            <div class="addr-content">
+                <strong id="display-main">河南省新乡市红旗区 关堤乡综合信兴物流园 22-23号邦尼电商仓库</strong>
+                <span id="display-sub">张海燕，16650388066</span>
+            </div>
+        </div>
+        <div class="btn-submit">填写单号</div>
+        <div class="product-card">
+            <div class="p-img"></div>
+            <div class="p-info">
+                <div class="p-title">运动鞋垫男款吸汗防臭减震气垫久站防痛超轻软弹透气...</div>
+                <div style="color:#999; font-size:12px; margin-top:5px;">颜色分类：【1双】抗菌除臭...</div>
+            </div>
+        </div>
+    </div>
+    <div class="bottom-bar">
+        <div class="btn-ghost">平台介入</div>
+        <div class="btn-ghost">撤销申请</div>
+    </div>
+</div>
+
+<div class="editor-container">
+    <div class="editor-title">实时地址编辑 / 历史记录</div>
+    <textarea id="input-main" class="input-box" rows="3" placeholder="输入新地址..."></textarea>
+    <input id="input-sub" class="input-box" type="text" placeholder="收货人及电话...">
+    
+    <button onclick="saveCurrent()" style="width:100%; padding:12px; border:none; background:var(--tb-orange); color:#fff; border-radius:6px; font-weight:bold; cursor:pointer;">同步到手机预览</button>
+
+    <div style="margin-top: 20px;">
+        <div style="font-size:12px; color:#999; margin-bottom:10px;">最近使用的地址历史：</div>
+        <div id="history-list"></div>
+    </div>
+</div>
+
+<script>
+    // 时间同步
+    setInterval(() => {
+        const d = new Date();
+        document.getElementById('live-time').innerText = d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
+    }, 1000);
+
+    let history = JSON.parse(localStorage.getItem('tb_history') || '[]');
+
+    function renderHistory() {
+        const list = document.getElementById('history-list');
+        list.innerHTML = history.map((item, i) => `
+            <div class="history-item" onclick="applyHistory(${i})">
+                <strong>记录 ${i+1}:</strong> ${item.main.substring(0, 20)}...
+            </div>
+        `).join('');
+    }
+
+    function saveCurrent() {
+        const m = document.getElementById('input-main').value;
+        const s = document.getElementById('input-sub').value;
+        if(!m || !s) return alert('请填写完整地址信息');
+        
+        document.getElementById('display-main').innerText = m;
+        document.getElementById('display-sub').innerText = s;
+
+        history = history.filter(h => h.main !== m);
+        history.unshift({main: m, sub: s});
+        if(history.length > 5) history.pop();
+        localStorage.setItem('tb_history', JSON.stringify(history));
+        renderHistory();
+    }
+
+    function applyHistory(i) {
+        const item = history[i];
+        document.getElementById('input-main').value = item.main;
+        document.getElementById('input-sub').value = item.sub;
+        document.getElementById('display-main').innerText = item.main;
+        document.getElementById('display-sub').innerText = item.sub;
+    }
+
+    window.onload = () => {
+        document.getElementById('input-main').value = document.getElementById('display-main').innerText;
+        document.getElementById('input-sub').value = document.getElementById('display-sub').innerText;
+        renderHistory();
+    };
+</script>
+
+</body>
+</html>
