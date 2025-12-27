@@ -2,13 +2,8 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="地址助手">
-    
-    <title>1:1 还原-离线纯净版</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>退货地址模拟器 - 智能识别版</title>
     <style>
         :root {
             --tb-orange: #ff5000;
@@ -21,43 +16,33 @@
         
         body {
             margin: 0;
-            background-color: #fff; /* 去掉之前的灰色背景 */
+            background-color: #f0f2f5;
             font-family: -apple-system, "SF Pro Text", "PingFang SC", sans-serif;
             display: flex;
-            flex-direction: column;
-            align-items: center;
+            flex-direction: row; /* 横向排列方便对比 */
+            justify-content: center;
+            align-items: flex-start;
+            padding: 40px;
+            gap: 40px;
         }
 
-        /* --- 手机展示区：去除边框和阴影 --- */
+        /* --- 手机容器 --- */
         .iphone-container {
-            width: 100%;       /* 适配移动端宽度 */
-            max-width: 375px;
+            width: 375px;
             height: 812px;
             background: #fff;
             position: relative;
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            border: none;      /* 去除黑色边框 */
-            box-shadow: none;  /* 去除阴影 */
-            border-radius: 0;  /* 去除圆角使画面填满 */
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+            border-radius: 40px;
+            border: 8px solid #333;
+            flex-shrink: 0;
         }
 
-        /* 状态栏适配刘海 */
-        .status-bar { 
-            height: calc(44px + env(safe-area-inset-top)); 
-            padding: env(safe-area-inset-top) 22px 0; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            font-size: 15px; 
-            font-weight: 600; 
-        }
-
-        /* 内部滚动区 */
         .scroll-content { flex: 1; overflow-y: auto; overflow-x: hidden; }
-
-        /* 基础样式保持不变 */
+        .status-bar { height: 44px; padding: 0 22px; display: flex; justify-content: space-between; align-items: center; font-size: 15px; font-weight: 600; }
         .status-right { display: flex; align-items: center; gap: 5px; }
         .battery { width: 25px; height: 11.5px; border: 1px solid rgba(0,0,0,0.35); border-radius: 2.5px; position: relative; padding: 1px; }
         .battery-level { width: 67%; height: 100%; background: #000; border-radius: 1px; }
@@ -65,32 +50,47 @@
         .nav-breadcrumb { flex: 1; display: flex; justify-content: center; align-items: center; font-size: 13px; color: var(--text-sub); }
         .nav-breadcrumb span.active { color: #333; font-weight: 500; margin: 0 4px; }
         .main-title { font-size: 24px; font-weight: 600; text-align: center; margin-top: 15px; }
-        .status-text { color: #ff5500; font-size: 14px; font-weight: 500; display: block; text-align: center; }
+        .status-text { color: #ff5500; font-size: 14px; font-weight: 500; display: block; text-align: center; padding: 0 20px; }
         .countdown { display: block; color: var(--text-sub); font-size: 12px; margin-top: 5px; text-align: center; }
         .method-selector { display: flex; padding: 20px 16px; gap: 8px; }
         .card { flex: 1; border: 1px solid #f0f0f0; border-radius: 8px; padding: 14px 0; text-align: center; background: #fafafa; }
         .card.active { border: 1.5px solid var(--tb-orange); background: #fff; color: var(--tb-orange); }
         .warning-strip { background: #fff6f1; color: #ff854a; font-size: 12px; margin: 0 16px; padding: 10px; border-radius: 6px; text-align: center; }
+        
+        /* 地址显示区 */
         .address-section { padding: 20px 16px; display: flex; font-size: 14px; }
-        .addr-label { color: #666; width: 75px; }
-        .addr-content { flex: 1; line-height: 1.5; }
+        .addr-label { color: #666; width: 75px; flex-shrink: 0; }
+        .addr-content { flex: 1; line-height: 1.5; word-break: break-all; }
+        #display-main { display: block; margin-bottom: 4px; }
+
         .btn-submit { background: linear-gradient(90deg, #ff8e00, #ff5000); color: white; margin: 10px 16px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 22px; font-size: 16px; font-weight: 500; }
         .product-card { padding: 16px; display: flex; gap: 12px; border-top: 8px solid var(--tb-bg); }
-        .p-img { width: 75px; height: 75px; background: #eee; border-radius: 6px; }
-        .bottom-bar { height: 55px; background: #fff; border-top: 1px solid #eee; display: flex; align-items: center; justify-content: flex-end; padding: 0 12px; gap: 10px; padding-bottom: env(safe-area-inset-bottom); }
+        .p-img { width: 75px; height: 75px; background: #eee; border-radius: 6px; flex-shrink: 0; }
+        .bottom-bar { height: 55px; background: #fff; border-top: 1px solid #eee; display: flex; align-items: center; justify-content: flex-end; padding: 0 12px; gap: 10px; }
         .btn-ghost { border: 1px solid #ccc; padding: 6px 15px; border-radius: 18px; font-size: 13px; }
 
-        /* --- 编辑器样式：去除阴影和边框 --- */
+        /* --- 编辑器样式 --- */
         .editor-container {
-            width: 100%;
-            max-width: 375px;
-            padding: 20px;
+            width: 400px;
+            padding: 25px;
             background: #fff;
-            border-top: 1px solid #eee; /* 仅保留顶部线条区分区域 */
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            position: sticky;
+            top: 40px;
         }
-        .editor-title { font-size: 16px; font-weight: bold; color: #333; margin-bottom: 15px; border-left: 4px solid var(--tb-orange); padding-left: 10px; }
-        .input-box { width: 100%; border: 1px solid #ddd; border-radius: 6px; padding: 12px; font-size: 14px; margin-bottom: 12px; outline: none; }
-        .history-item { background: #f8f8f8; padding: 10px; border-radius: 6px; margin-bottom: 8px; font-size: 12px; color: #666; cursor: pointer; }
+        .editor-title { font-size: 18px; font-weight: bold; color: #333; margin-bottom: 20px; border-left: 5px solid var(--tb-orange); padding-left: 12px; }
+        .input-box { width: 100%; border: 1px solid #ddd; border-radius: 10px; padding: 15px; font-size: 14px; margin-bottom: 15px; outline: none; transition: all 0.3s; resize: none; }
+        .input-box:focus { border-color: var(--tb-orange); box-shadow: 0 0 0 3px rgba(255,80,0,0.1); }
+        .history-item { background: #f8f8f8; padding: 12px; border-radius: 8px; margin-bottom: 10px; font-size: 12px; color: #666; cursor: pointer; border: 1px solid transparent; transition: 0.2s; }
+        .history-item:hover { border-color: var(--tb-orange); background: #fff; }
+        
+        .preview-tag { font-size: 11px; color: var(--tb-orange); background: rgba(255,80,0,0.1); padding: 2px 6px; border-radius: 4px; margin-bottom: 8px; display: inline-block; }
+
+        @media (max-width: 850px) {
+            body { flex-direction: column; align-items: center; padding: 20px; }
+            .editor-container { width: 375px; position: static; }
+        }
     </style>
 </head>
 <body>
@@ -120,15 +120,15 @@
         <div class="address-section">
             <div class="addr-label">商家地址</div>
             <div class="addr-content">
-                <strong id="display-main">河南省新乡市红旗区 关堤乡综合信兴物流园 22-23号邦尼电商仓库</strong>
-                <span id="display-sub">张海燕，16650388066</span>
+                <strong id="display-main">广东省深圳市龙岗区坂田街道XX路淘宝大厦</strong>
+                <span id="display-sub">张经理，16666666666</span>
             </div>
         </div>
         <div class="btn-submit">填写单号</div>
         <div class="product-card">
             <div class="p-img"></div>
             <div class="p-info">
-                <div class="p-title">运动鞋垫男款吸汗防臭减震气垫久站防痛超轻软弹透气...</div>
+                <div class="p-title" style="font-size:13px; line-height:1.4;">运动鞋垫男款吸汗防臭减震气垫久站防痛超轻软弹透气...</div>
                 <div style="color:#999; font-size:12px; margin-top:5px;">颜色分类：【1双】抗菌除臭...</div>
             </div>
         </div>
@@ -140,59 +140,132 @@
 </div>
 
 <div class="editor-container">
-    <div class="editor-title">实时地址编辑 / 历史记录</div>
-    <textarea id="input-main" class="input-box" rows="3" placeholder="输入新地址..."></textarea>
-    <input id="input-sub" class="input-box" type="text" placeholder="收货人及电话...">
-    <button onclick="saveCurrent()" style="width:100%; padding:12px; border:none; background:var(--tb-orange); color:#fff; border-radius:6px; font-weight:bold;">同步到手机预览</button>
-    <div id="history-list" style="margin-top: 20px;"></div>
+    <div class="editor-title">智能地址识别</div>
+    
+    <div class="preview-tag">粘贴整段地址自动拆分</div>
+    <textarea id="smart-input" class="input-box" rows="5" 
+        placeholder="示例：
+广东省深圳市龙岗区坂田街道XX大厦 张三 16666666666"></textarea>
+    
+    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+        <button onclick="handleSmartParse()" style="flex: 2; padding:14px; border:none; background:var(--tb-orange); color:#fff; border-radius:8px; font-weight:bold; cursor:pointer; font-size:15px;">识别并同步预览</button>
+        <button onclick="clearInput()" style="flex: 1; padding:14px; border:1px solid #ddd; background:#fff; border-radius:8px; cursor:pointer; color:#666;">清空</button>
+    </div>
+
+    <div style="border-top: 1px solid #eee; padding-top: 20px;">
+        <div style="font-size:12px; color:#999; margin-bottom:12px; display:flex; justify-content:space-between;">
+            <span>最近识别历史</span>
+            <a href="#" onclick="clearHistory()" style="color:var(--tb-orange); text-decoration:none;">清除历史</a>
+        </div>
+        <div id="history-list"></div>
+    </div>
 </div>
 
 <script>
-    // 离线化核心：注册 Service Worker
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('/sw.js');
-        });
-    }
-
-    // 时间与逻辑
+    // 1. 实时时间更新
     setInterval(() => {
         const d = new Date();
         document.getElementById('live-time').innerText = d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
     }, 1000);
 
-    let history = JSON.parse(localStorage.getItem('tb_history') || '[]');
+    let history = JSON.parse(localStorage.getItem('tb_smart_history') || '[]');
+
+    // 2. 核心：智能识别逻辑
+    function handleSmartParse() {
+        const rawText = document.getElementById('smart-input').value.trim();
+        if (!rawText) return alert('请先粘贴地址信息');
+
+        // 提取手机号 (11位数字)
+        const phoneReg = /(1[3-9]\d{9})/;
+        const phoneMatch = rawText.match(phoneReg);
+        const phone = phoneMatch ? phoneMatch[0] : "";
+
+        // 清理掉手机号后的文本，用于找姓名和地址
+        let cleanText = rawText.replace(phone, "").replace(/[,，\s]+/g, " ").trim();
+        
+        // 简单的姓名地址拆分策略：
+        // 通常姓名和地址之间会有空格，我们取其中较短的片段作为姓名
+        const parts = cleanText.split(/\s+/).filter(p => p.length > 0);
+        let name = "收货人";
+        let address = cleanText;
+
+        if (parts.length >= 2) {
+            // 找出最像名字的（长度短且不含省市字眼的）
+            let nameIndex = 0;
+            let minLen = 999;
+            parts.forEach((p, idx) => {
+                if (p.length < minLen && !p.includes('省') && !p.includes('市')) {
+                    minLen = p.length;
+                    nameIndex = idx;
+                }
+            });
+            name = parts[nameIndex];
+            // 剩下的拼接成地址
+            address = parts.filter((_, idx) => idx !== nameIndex).join("");
+        }
+
+        const finalSub = `${name}，${phone}`;
+        
+        // 同步到 UI
+        updateUI(address, finalSub);
+        // 保存历史
+        saveToHistory(address, finalSub);
+    }
+
+    function updateUI(main, sub) {
+        document.getElementById('display-main').innerText = main;
+        document.getElementById('display-sub').innerText = sub;
+    }
+
+    function saveToHistory(m, s) {
+        // 避免重复
+        history = history.filter(h => h.main !== m);
+        history.unshift({main: m, sub: s});
+        if(history.length > 5) history.pop();
+        localStorage.setItem('tb_smart_history', JSON.stringify(history));
+        renderHistory();
+    }
+
     function renderHistory() {
         const list = document.getElementById('history-list');
+        if (history.length === 0) {
+            list.innerHTML = '<div style="color:#ccc; font-size:12px; text-align:center; padding:20px;">暂无历史记录</div>';
+            return;
+        }
         list.innerHTML = history.map((item, i) => `
             <div class="history-item" onclick="applyHistory(${i})">
-                <strong>记录 ${i+1}:</strong> ${item.main.substring(0, 20)}...
+                <div style="font-weight:bold; color:#333; margin-bottom:4px;">${item.main.substring(0, 22)}${item.main.length > 22 ? '...' : ''}</div>
+                <div style="opacity:0.8">${item.sub}</div>
             </div>
         `).join('');
     }
 
-    function saveCurrent() {
-        const m = document.getElementById('input-main').value;
-        const s = document.getElementById('input-sub').value;
-        if(!m || !s) return alert('请填写完整');
-        document.getElementById('display-main').innerText = m;
-        document.getElementById('display-sub').innerText = s;
-        history = history.filter(h => h.main !== m).slice(0, 4);
-        history.unshift({main: m, sub: s});
-        localStorage.setItem('tb_history', JSON.stringify(history));
-        renderHistory();
-    }
-
     function applyHistory(i) {
         const item = history[i];
-        document.getElementById('input-main').value = item.main;
-        document.getElementById('input-sub').value = item.sub;
-        saveCurrent();
+        document.getElementById('smart-input').value = `${item.main} ${item.sub}`;
+        updateUI(item.main, item.sub);
+    }
+
+    function clearInput() {
+        document.getElementById('smart-input').value = '';
+    }
+
+    function clearHistory() {
+        if(confirm('确定要清除所有历史记录吗？')) {
+            history = [];
+            localStorage.removeItem('tb_smart_history');
+            renderHistory();
+        }
     }
 
     window.onload = () => {
         renderHistory();
+        // 初始化一下输入框
+        const initialMain = document.getElementById('display-main').innerText;
+        const initialSub = document.getElementById('display-sub').innerText;
+        document.getElementById('smart-input').value = `${initialMain} ${initialSub}`;
     };
 </script>
+
 </body>
 </html>
