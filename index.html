@@ -20,31 +20,32 @@
         
         body {
             margin: 0;
-            background-color: #fff; /* 改为白色，保持界面统一 */
+            background-color: #f2f2f2;
             font-family: -apple-system, "SF Pro Text", "PingFang SC", sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
-            /* 适配 iOS 顶部感应区 */
-            padding-top: env(safe-area-inset-top);
         }
 
-        /* --- 手机内容容器（去除边框和固定高度） --- */
+        /* --- iPhone 16 比例容器 (约 393x852) --- */
         .iphone-container {
-            width: 100%;
-            max-width: 375px;
+            width: 100vw;
+            max-width: 393px;
+            height: 100vh; /* 填满屏幕高度 */
             background: #fff;
-            position: relative;
             display: flex;
             flex-direction: column;
-            /* 去除了 border, border-radius 和 box-shadow */
+            padding-top: env(safe-area-inset-top);
+            position: relative;
         }
 
-        /* 导航栏保持 */
-        .nav-bar { height: 44px; display: flex; align-items: center; padding: 0 12px; margin-top: 10px; }
+        /* 顶部导航 */
+        .nav-bar { height: 44px; display: flex; align-items: center; padding: 0 12px; }
         .nav-breadcrumb { flex: 1; display: flex; justify-content: center; align-items: center; font-size: 13px; color: var(--text-sub); }
         .nav-breadcrumb span.active { color: #333; font-weight: 500; margin: 0 4px; }
         
+        /* 中间内容区 */
+        .main-content { flex: 1; overflow-y: auto; }
         .main-title { font-size: 24px; font-weight: 600; text-align: center; margin-top: 15px; }
         .status-text { color: #ff5500; font-size: 14px; font-weight: 500; display: block; text-align: center; padding: 0 20px; }
         .countdown { display: block; color: var(--text-sub); font-size: 12px; margin-top: 5px; text-align: center; }
@@ -57,30 +58,34 @@
         
         .address-section { padding: 20px 16px; display: flex; font-size: 14px; }
         .addr-label { color: #666; width: 75px; flex-shrink: 0; }
-        .addr-content { flex: 1; line-height: 1.5; word-break: break-all; }
+        .addr-content { flex: 1; line-height: 1.5; }
         #display-main { display: block; margin-bottom: 4px; font-weight: bold; }
 
         .btn-submit { background: linear-gradient(90deg, #ff8e00, #ff5000); color: white; margin: 10px 16px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 22px; font-size: 16px; font-weight: 500; }
-        
+
+        /* --- 底部固定区 --- */
+        .bottom-fixed-area {
+            margin-top: auto; /* 关键：推到最下方 */
+            background: #fff;
+            padding-bottom: env(safe-area-inset-bottom); /* 避开底部操作条 */
+        }
+
         .product-card { padding: 16px; display: flex; gap: 12px; border-top: 8px solid var(--tb-bg); }
         .p-img { width: 75px; height: 75px; background: #eee; border-radius: 6px; flex-shrink: 0; }
         
-        .bottom-bar { height: 55px; background: #fff; border-top: 1px solid #eee; display: flex; align-items: center; justify-content: flex-end; padding: 0 12px; gap: 10px; margin-bottom: 20px;}
-        .btn-ghost { border: 1px solid #ccc; padding: 6px 15px; border-radius: 18px; font-size: 13px; }
+        .bottom-bar { height: 55px; background: #fff; border-top: 1px solid #eee; display: flex; align-items: center; justify-content: flex-end; padding: 0 12px; gap: 10px; }
+        .btn-ghost { border: 1px solid #ccc; padding: 6px 15px; border-radius: 18px; font-size: 13px; color: #666; }
 
-        /* --- 编辑器样式（移动到下方） --- */
+        /* 编辑器强制放在第二屏 */
         .editor-container {
             width: 100%;
-            max-width: 375px;
+            max-width: 393px;
             padding: 25px;
-            background: #f8f8f8; /* 稍微区分一下编辑区 */
+            background: #f8f8f8;
             border-top: 2px dashed #ddd;
-            margin-top: 50px; /* 强制拉开距离，不要在第一屏显示 */
-            padding-bottom: 100px;
+            margin-top: 40px;
         }
-        .editor-title { font-size: 18px; font-weight: bold; color: #333; margin-bottom: 20px; border-left: 5px solid var(--tb-orange); padding-left: 12px; }
-        .input-box { width: 100%; border: 1px solid #ddd; border-radius: 10px; padding: 15px; font-size: 14px; margin-bottom: 15px; outline: none; background: #fff; }
-        .history-item { background: #fff; padding: 12px; border-radius: 8px; margin-bottom: 10px; font-size: 12px; color: #666; border: 1px solid #eee; }
+        .input-box { width: 100%; border: 1px solid #ddd; border-radius: 10px; padding: 15px; margin-bottom: 15px; }
     </style>
 </head>
 <body>
@@ -92,60 +97,55 @@
         <div style="width:40px; text-align:right;">···</div>
     </div>
     
-    <div class="main-title">请选择退货方式</div>
-    <div style="padding:10px 0;">
-        <span class="status-text">因您信誉良好，平台已同意您的退货申请</span>
-        <span id="countdown-text" class="countdown">6天23时58分后未寄出将撤销退货申请</span>
-    </div>
-
-    <div class="method-selector">
-        <div class="card"><div class="name">上门取件</div></div>
-        <div class="card"><div class="name">驿站自寄</div></div>
-        <div class="card active"><div class="name">自行寄回</div></div>
-    </div>
-
-    <div class="warning-strip">需您自行联系快递公司退回，请不要邮寄到付</div>
-
-    <div class="address-section">
-        <div class="addr-label">商家地址</div>
-        <div class="addr-content">
-            <span id="display-main">广东省深圳市龙岗区坂田街道XX路淘宝大厦</span>
-            <span id="display-sub">张经理，16666666666</span>
+    <div class="main-content">
+        <div class="main-title">请选择退货方式</div>
+        <div style="padding:10px 0;">
+            <span class="status-text">因您信誉良好，平台已同意您的退货申请</span>
+            <span class="countdown">6天23时58分后未寄出将撤销退货申请</span>
         </div>
-    </div>
 
-    <div class="btn-submit">填写单号</div>
-
-    <div class="product-card">
-        <div class="p-img"></div>
-        <div class="p-info">
-            <div class="p-title" style="font-size:13px; line-height:1.4;">运动鞋垫男款吸汗防臭减震气垫久站防痛超轻软弹透气...</div>
-            <div style="color:#999; font-size:12px; margin-top:5px;">颜色分类：【1双】抗菌除臭...</div>
+        <div class="method-selector">
+            <div class="card"><div class="name">上门取件</div></div>
+            <div class="card"><div class="name">驿站自寄</div></div>
+            <div class="card active"><div class="name">自行寄回</div></div>
         </div>
+
+        <div class="warning-strip">需您自行联系快递公司退回，请不要邮寄到付</div>
+
+        <div class="address-section">
+            <div class="addr-label">商家地址</div>
+            <div class="addr-content">
+                <span id="display-main">广东省深圳市龙岗区坂田街道XX路淘宝大厦</span>
+                <span id="display-sub">张经理，16666666666</span>
+            </div>
+        </div>
+
+        <div class="btn-submit">填写单号</div>
     </div>
 
-    <div class="bottom-bar">
-        <div class="btn-ghost">平台介入</div>
-        <div class="btn-ghost">撤销申请</div>
+    <div class="bottom-fixed-area">
+        <div class="product-card">
+            <div class="p-img"></div>
+            <div class="p-info">
+                <div class="p-title" style="font-size:13px; line-height:1.4;">运动鞋垫男款吸汗防臭减震气垫久站防痛超轻软弹透气...</div>
+                <div style="color:#999; font-size:12px; margin-top:5px;">颜色分类：【1双】抗菌除臭...</div>
+            </div>
+        </div>
+
+        <div class="bottom-bar">
+            <div class="btn-ghost">平台介入</div>
+            <div class="btn-ghost">撤销申请</div>
+        </div>
     </div>
 </div>
 
 <div class="editor-container">
-    <div class="editor-title">设置与智能识别</div>
-    <textarea id="smart-input" class="input-box" rows="4" placeholder="粘贴整段地址信息..."></textarea>
-    
-    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-        <button onclick="handleSmartParse()" style="flex: 2; padding:14px; border:none; background:var(--tb-orange); color:#fff; border-radius:8px; font-weight:bold; cursor:pointer;">识别并更新</button>
-        <button onclick="clearInput()" style="flex: 1; padding:14px; border:1px solid #ddd; background:#fff; border-radius:8px; cursor:pointer; color:#666;">重置</button>
-    </div>
-
-    <div style="font-size:12px; color:#999; margin-bottom:12px;">识别记录：</div>
-    <div id="history-list"></div>
+    <div style="font-weight:bold; margin-bottom:10px;">智能地址识别</div>
+    <textarea id="smart-input" class="input-box" rows="3" placeholder="粘贴地址..."></textarea>
+    <button onclick="handleSmartParse()" style="width:100%; padding:14px; background:var(--tb-orange); color:#fff; border:none; border-radius:8px; font-weight:bold;">识别并同步</button>
 </div>
 
 <script>
-    let history = JSON.parse(localStorage.getItem('tb_smart_history_v2') || '[]');
-
     function handleSmartParse() {
         const rawText = document.getElementById('smart-input').value.trim();
         if (!rawText) return;
@@ -173,47 +173,10 @@
             address = parts.filter((_, idx) => idx !== nameIndex).join("");
         }
 
-        const finalSub = `${name}，${phone}`;
         document.getElementById('display-main').innerText = address;
-        document.getElementById('display-sub').innerText = finalSub;
-        
-        saveToHistory(address, finalSub);
-        window.scrollTo({top: 0, behavior: 'smooth'}); // 识别后自动滚回顶部看效果
-    }
-
-    function saveToHistory(m, s) {
-        history = history.filter(h => h.main !== m);
-        history.unshift({main: m, sub: s});
-        if(history.length > 3) history.pop();
-        localStorage.setItem('tb_smart_history_v2', JSON.stringify(history));
-        renderHistory();
-    }
-
-    function renderHistory() {
-        const list = document.getElementById('history-list');
-        list.innerHTML = history.map((item, i) => `
-            <div class="history-item" onclick="applyHistory(${i})">
-                <strong>${item.main.substring(0,15)}...</strong><br>${item.sub}
-            </div>
-        `).join('');
-    }
-
-    function applyHistory(i) {
-        const item = history[i];
-        document.getElementById('display-main').innerText = item.main;
-        document.getElementById('display-sub').innerText = item.sub;
+        document.getElementById('display-sub').innerText = `${name}，${phone}`;
         window.scrollTo({top: 0, behavior: 'smooth'});
     }
-
-    function clearInput() { document.getElementById('smart-input').value = ''; }
-
-    window.onload = () => {
-        renderHistory();
-        // 初始填充
-        const initialMain = document.getElementById('display-main').innerText;
-        const initialSub = document.getElementById('display-sub').innerText;
-        document.getElementById('smart-input').value = `${initialMain} ${initialSub}`;
-    };
 </script>
 
 </body>
