@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>退货地址 - 增强历史记录版</title>
+    <title>退货地址</title>
 
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -14,6 +14,7 @@
             --tb-bg: #f7f8fa;
             --text-main: #333333;
             --text-sub: #999999;
+            --border-color: #eeeeee;
         }
 
         * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
@@ -40,12 +41,11 @@
             overflow: hidden;
         }
 
-        /* 顶部导航 */
         .nav-bar { height: 44px; display: flex; align-items: center; padding: 0 16px; margin-bottom: 10px; }
         .nav-left { font-size: 22px; width: 30px; }
         .nav-breadcrumb { flex: 1; display: flex; justify-content: center; align-items: center; font-size: 14px; color: #999; }
         .nav-breadcrumb span.active { color: #333; font-weight: bold; margin: 0 4px; }
-        .nav-right { font-size: 20px; width: 30px; text-align: right; font-weight: bold; }
+        .nav-right { font-size: 20px; width: 30px; text-align: right; letter-spacing: -2px; font-weight: bold; }
 
         .main-scroll { flex: 1; overflow-y: auto; }
         .main-title { font-size: 26px; font-weight: bold; text-align: center; margin-top: 20px; color: #111; }
@@ -56,26 +56,38 @@
 
         .method-selector { display: flex; padding: 25px 16px; gap: 10px; }
         .card { flex: 1; border: 1px solid #f2f2f2; border-radius: 12px; padding: 15px 0; text-align: center; background: #fcfcfc; }
-        .card.active { border: 1.5px solid var(--tb-orange); background: #fff; }
-        .card.active .name { color: var(--tb-orange); font-weight: bold; }
+        .card .name { font-size: 16px; font-weight: bold; color: #333; }
+        .card .desc { font-size: 11px; color: #999; margin-top: 4px; }
+        .card.active { border: 1.5px solid var(--tb-orange); background: #fff; position: relative; }
+        .card.active .name { color: var(--tb-orange); }
+        .card.active .desc { color: var(--tb-orange); opacity: 0.8; }
 
-        .address-section { padding: 25px 16px; display: flex; font-size: 14px; }
+        .warning-strip { background: #fff6f1; color: #ff854a; font-size: 12px; margin: 0 16px; padding: 12px; border-radius: 8px; text-align: center; }
+
+        .address-section { padding: 25px 16px; display: flex; font-size: 14px; align-items: flex-start; }
         .addr-label { color: #666; width: 70px; flex-shrink: 0; }
         .addr-content { flex: 1; line-height: 1.6; text-align: right; }
         #display-main { display: block; font-weight: 500; color: #333; }
+        #display-sub { color: #333; }
+        .copy-btn { color: var(--tb-orange); font-size: 12px; display: inline-flex; align-items: center; gap: 2px; margin-top: 4px; }
 
         .btn-submit { background: linear-gradient(90deg, #ff8e00, #ff5000); color: white; margin: 15px 16px; height: 48px; display: flex; align-items: center; justify-content: center; border-radius: 24px; font-size: 16px; font-weight: bold; }
 
         .bottom-fixed-group { border-top: 8px solid var(--tb-bg); background: #fff; padding-bottom: env(safe-area-inset-bottom); }
         .product-card { padding: 16px; display: flex; gap: 12px; }
-        .p-img { width: 80px; height: 80px; background: #f8f8f8; border-radius: 8px; flex-shrink: 0; }
-        .bottom-bar { height: 60px; border-top: 1px solid #eee; display: flex; align-items: center; justify-content: flex-end; padding: 0 16px; gap: 10px; }
-        .btn-ghost { border: 1px solid #ddd; padding: 8px 18px; border-radius: 20px; font-size: 14px; }
+        .p-img { width: 80px; height: 80px; background: #f8f8f8; border-radius: 8px; flex-shrink: 0; background-image: url('https://img.alicdn.com/imgextra/i4/O1CN01I7S9p81G9p9p9p9p9_!!0-item_pic.jpg'); background-size: cover; }
+        .p-info { flex: 1; }
+        .p-title { font-size: 14px; line-height: 1.4; color: #333; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .p-spec { color: #999; font-size: 12px; margin-top: 6px; }
+        .p-tags { margin-top: 8px; display: flex; gap: 8px; font-size: 11px; color: var(--tb-orange); }
 
-        /* --- 编辑器及历史记录样式 --- */
+        .action-links { padding: 15px 16px; display: flex; justify-content: space-between; border-top: 1px solid #f5f5f5; font-size: 13px; color: #666; }
+        .bottom-bar { height: 60px; background: #fff; border-top: 1px solid #eee; display: flex; align-items: center; justify-content: flex-end; padding: 0 16px; gap: 10px; }
+        .btn-ghost { border: 1px solid #ddd; padding: 8px 18px; border-radius: 20px; font-size: 14px; color: #333; }
+
+        /* --- 编辑器及历史记录增强样式 --- */
         .editor-container { width: 100%; max-width: 393px; padding: 30px 20px; background: #fff; border-top: 1px solid #ddd; margin-top: 50px; }
-        .input-box { width: 100%; border: 1px solid #ddd; border-radius: 10px; padding: 15px; margin-bottom: 15px; font-size: 14px; background: #f9f9f9; outline: none; }
-        .input-box:focus { border-color: var(--tb-orange); }
+        .input-box { width: 100%; border: 1px solid #ccc; border-radius: 10px; padding: 15px; margin-bottom: 15px; font-size: 14px; outline: none; background: #f9f9f9; }
         
         .history-section { margin-top: 25px; border-top: 1px dashed #eee; padding-top: 20px; }
         .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
@@ -95,22 +107,29 @@
     
     <div class="main-scroll">
         <div class="main-title">请选择退货方式</div>
-        <div class="badge-line"><span class="membership-tag">铂金会员</span><span class="status-text">因您信誉良好，平台已同意您的退货申请</span></div>
+        <div class="badge-line">
+            <span class="membership-tag">铂金会员</span>
+            <span class="status-text">因您信誉良好，平台已同意您的退货申请</span>
+        </div>
         <span class="countdown">5天15时46分后未寄出将撤销退货申请</span>
 
         <div class="method-selector">
-            <div class="card"><div class="name">上门取件</div></div>
-            <div class="card"><div class="name">驿站自寄</div></div>
-            <div class="card active"><div class="name">自行寄回</div></div>
+            <div class="card"><div class="name">上门取件</div><div class="desc">快递员上门</div></div>
+            <div class="card"><div class="name">驿站自寄</div><div class="desc">免费包装</div></div>
+            <div class="card active"><div class="name">自行寄回</div><div class="desc">需填写单号</div></div>
         </div>
+
+        <div class="warning-strip">需您自行联系快递公司退回，请不要邮寄到付</div>
 
         <div class="address-section">
             <div class="addr-label">商家地址</div>
             <div class="addr-content">
-                <span id="display-main">请在下方输入新地址进行同步</span>
-                <span id="display-sub">收货人，电话</span>
+                <span id="display-main">河南省新乡市红旗区 关堤乡综合信兴物流园22-23号邦尼电商仓库</span>
+                <span id="display-sub">张海燕，16650388066</span>
+                <div class="copy-btn">❐ 复制地址</div>
             </div>
         </div>
+
         <div class="btn-submit">填写单号</div>
     </div>
 
@@ -119,8 +138,13 @@
             <div class="p-img"></div>
             <div class="p-info">
                 <div class="p-title">运动鞋垫男款吸汗防臭减震气垫久站防痛超轻软弹透气...</div>
-                <div style="color:#999; font-size:12px; margin-top:5px;">颜色分类：【1双】抗菌除臭...</div>
+                <div class="p-spec">颜色分类：【1双】抗菌除臭/透...</div>
+                <div class="p-tags"><span>7天无理由退换</span> <span>退货宝 &rsaquo;</span></div>
             </div>
+        </div>
+        <div class="action-links">
+            <span>协商历史</span>
+            <span>查看全部售后信息 &rsaquo;</span>
         </div>
         <div class="bottom-bar">
             <div class="btn-ghost">平台介入</div>
@@ -131,7 +155,7 @@
 
 <div class="editor-container">
     <div style="font-weight:bold; margin-bottom:15px; font-size:18px; border-left: 4px solid var(--tb-orange); padding-left: 10px;">智能地址更新</div>
-    <textarea id="smart-input" class="input-box" rows="4" placeholder="粘贴地址、姓名、电话..."></textarea>
+    <textarea id="smart-input" class="input-box" rows="4" placeholder="粘贴地址信息（包含姓名电话）..."></textarea>
     <button onclick="handleSmartParse()" style="width:100%; padding:15px; background:var(--tb-orange); color:#fff; border:none; border-radius:10px; font-weight:bold; font-size:16px; cursor:pointer;">识别并同步到预览</button>
 
     <div class="history-section">
@@ -139,13 +163,12 @@
             <span style="font-size: 14px; font-weight: bold; color: #999;">识别历史 (最近10条)</span>
             <span onclick="clearHistory()" style="font-size: 12px; color: var(--tb-orange); cursor: pointer;">清除全部</span>
         </div>
-        <div id="history-list">
-            </div>
+        <div id="history-list"></div>
     </div>
 </div>
 
 <script>
-    let addressHistory = JSON.parse(localStorage.getItem('tb_address_history_v3') || '[]');
+    let addressHistory = JSON.parse(localStorage.getItem('tb_address_history_v16') || '[]');
 
     function handleSmartParse() {
         const rawText = document.getElementById('smart-input').value.trim();
@@ -186,21 +209,17 @@
     }
 
     function saveToHistory(main, sub) {
-        // 过滤掉重复项
         addressHistory = addressHistory.filter(item => item.main !== main);
-        // 插入最前面
         addressHistory.unshift({ main, sub });
-        // 限制 10 条
         if (addressHistory.length > 10) addressHistory.pop();
-        
-        localStorage.setItem('tb_address_history_v3', JSON.stringify(addressHistory));
+        localStorage.setItem('tb_address_history_v16', JSON.stringify(addressHistory));
         renderHistory();
     }
 
     function renderHistory() {
         const listDiv = document.getElementById('history-list');
         if (addressHistory.length === 0) {
-            listDiv.innerHTML = '<div style="color:#ccc; font-size:12px; text-align:center; padding:20px;">暂无识别记录</div>';
+            listDiv.innerHTML = '<div style="color:#ccc; font-size:12px; text-align:center; padding:20px;">暂无历史记录</div>';
             return;
         }
         listDiv.innerHTML = addressHistory.map((item, index) => `
@@ -220,7 +239,7 @@
     function clearHistory() {
         if(confirm('确定要清除所有识别记录吗？')) {
             addressHistory = [];
-            localStorage.removeItem('tb_address_history_v3');
+            localStorage.removeItem('tb_address_history_v16');
             renderHistory();
         }
     }
